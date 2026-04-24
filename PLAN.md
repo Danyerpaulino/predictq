@@ -57,7 +57,7 @@ predictq/
 │       ├── test_ingestion.py       # Ingestion service (mocked HTTP)
 │       ├── test_markets_api.py     # Market endpoint integration tests
 │       └── test_ai_analysis.py     # AI analysis (mocked OpenAI)
-├── frontend/predictq/
+├── frontend/
 │   ├── Dockerfile
 │   ├── next.config.ts              # Rewrites: /api/* -> backend:8000/*
 │   ├── app/
@@ -198,7 +198,7 @@ Index: `(market_id, recorded_at)` for efficient history queries.
 
 - **db**: `postgres:16-alpine`, port 5432, healthcheck, named volume
 - **backend**: Build `./backend`, port 8000, depends on db health, command: `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload`
-- **frontend**: Build `./frontend/predictq`, port 3000, depends on backend
+- **frontend**: Build `./frontend`, port 3000, depends on backend
 
 ### Environment Variables
 

@@ -31,7 +31,7 @@ services:
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:
-    build: ./frontend/predictq
+    build: ./frontend
     ports:
       - "3000:3000"
     environment:
@@ -39,7 +39,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend/predictq:/app
+      - ./frontend:/app
       - /app/node_modules
 
 volumes:
