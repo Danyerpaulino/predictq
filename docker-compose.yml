@@ -22,6 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/predictq
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CORS_ORIGINS: http://localhost:3000
     depends_on:
       db:
         condition: service_healthy
@@ -35,6 +36,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      API_PROXY_TARGET: http://backend:8000
       NEXT_PUBLIC_API_URL: http://localhost:8000
     depends_on:
       - backend
