@@ -19,6 +19,8 @@ SessionFactory = async_sessionmaker[AsyncSession]
 
 
 class PolymarketIngestionService:
+    SNAPSHOT_INTERVAL_SECONDS = 3600
+
     def __init__(
         self,
         session_factory: SessionFactory,
@@ -32,6 +34,7 @@ class PolymarketIngestionService:
         self.poll_interval_seconds = poll_interval_seconds
         self.page_size = page_size
         self.request_timeout_seconds = request_timeout_seconds
+        self._last_snapshot_at: datetime | None = None
 
     async def run_forever(self) -> None:
         while True:
@@ -60,15 +63,22 @@ class PolymarketIngestionService:
                 normalized_markets.extend(page)
             return normalized_markets
 
+    MAX_PAGES = 50
+
     async def iter_market_pages(
         self, client: httpx.AsyncClient
     ) -> AsyncIterator[list[JsonDict]]:
         offset = 0
+        pages_fetched = 0
 
-        while True:
+        while pages_fetched < self.MAX_PAGES:
             response = await client.get(
                 self.api_url,
-                params={"limit": self.page_size, "offset": offset},
+                params={
+                    "limit": self.page_size,
+                    "offset": offset,
+                    "active": "true",
+                },
             )
             response.raise_for_status()
 
@@ -90,6 +100,7 @@ class PolymarketIngestionService:
                 break
 
             offset += self.page_size
+            pages_fetched += 1
 
     UPSERT_COLUMNS = (
         "question",
@@ -124,6 +135,11 @@ class PolymarketIngestionService:
             return
 
         now = datetime.now(UTC)
+        write_snapshots = (
+            self._last_snapshot_at is None
+            or (now - self._last_snapshot_at).total_seconds()
+            >= self.SNAPSHOT_INTERVAL_SECONDS
+        )
 
         async with self.session_factory() as session:
             async with session.begin():
@@ -142,10 +158,14 @@ class PolymarketIngestionService:
                         )
                     )
 
-                    snapshot_chunk = [self.build_snapshot_row(m) for m in chunk]
-                    await session.execute(
-                        pg_insert(MarketSnapshot).values(snapshot_chunk)
-                    )
+                    if write_snapshots:
+                        snapshot_chunk = [self.build_snapshot_row(m) for m in chunk]
+                        await session.execute(
+                            pg_insert(MarketSnapshot).values(snapshot_chunk)
+                        )
+
+        if write_snapshots:
+            self._last_snapshot_at = now
 
     def normalize_market(self, market: JsonDict) -> JsonDict | None:
         market_id = self.pick_first_present_value(market, ("id", "marketId", "market_id"))
