@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from collections.abc import AsyncIterator, Sequence
 from datetime import UTC, datetime
@@ -268,7 +269,14 @@ class PolymarketIngestionService:
 
     @staticmethod
     def as_json_value(value: Any) -> Any | None:
-        return value if value is not None else None
+        if value is None:
+            return None
+        if isinstance(value, str):
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, ValueError):
+                return value
+        return value
 
     @staticmethod
     def parse_float(value: Any, default: float | None = None) -> float | None:

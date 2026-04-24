@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.database import async_session
+from app.database import async_session, engine
+from app.models import Base
 from app.routes import ai_router, markets_router
 from app.services.ingestion import PolymarketIngestionService
 
@@ -22,6 +23,9 @@ def parse_cors_origins(raw_origins: str) -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     ingestion_service = PolymarketIngestionService(async_session)
     ingestion_task = asyncio.create_task(
         ingestion_service.run_forever(), name="polymarket-ingestion"
