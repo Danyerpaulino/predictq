@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AiInsights } from "@/components/AiInsights";
 import { PriceChart } from "@/components/PriceChart";
 import { getMarket, getMarketHistory } from "@/lib/api";
 import {
@@ -129,6 +130,7 @@ export default async function MarketDetailPage({
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-8">
           <PriceChart marketId={market.id} initialSnapshots={initialSnapshots} />
+          <AiInsights marketId={market.id} />
         </div>
 
         <aside className="space-y-6">
