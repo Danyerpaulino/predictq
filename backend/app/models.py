@@ -1,6 +1,17 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, Index, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    desc,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -43,14 +54,14 @@ class Market(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    __table_args__ = (Index("ix_markets_active_volume", "active", "volume_num"),)
+    __table_args__ = (Index("ix_markets_active_volume", "active", desc("volume_num")),)
 
 
 class MarketSnapshot(Base):
     __tablename__ = "market_snapshots"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    market_id: Mapped[str] = mapped_column(String, index=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    market_id: Mapped[str] = mapped_column(String, ForeignKey("markets.id"))
     outcome_prices: Mapped[dict | None] = mapped_column(JSONB)
     last_trade_price: Mapped[float | None] = mapped_column(Float)
     volume_num: Mapped[float | None] = mapped_column(Float)

@@ -1,4 +1,10 @@
-from pydantic_settings import BaseSettings
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT = BACKEND_DIR.parent
 
 
 class Settings(BaseSettings):
@@ -8,7 +14,10 @@ class Settings(BaseSettings):
     polymarket_api_url: str = "https://gamma-api.polymarket.com/markets"
     poll_interval_seconds: int = 45
 
-    model_config = {"env_file": ".env"}
+    model_config = SettingsConfigDict(
+        env_file=(REPO_ROOT / ".env", BACKEND_DIR / ".env"),
+        extra="ignore",
+    )
 
 
 settings = Settings()
