@@ -91,52 +91,61 @@ class PolymarketIngestionService:
 
             offset += self.page_size
 
+    UPSERT_COLUMNS = (
+        "question",
+        "slug",
+        "description",
+        "condition_id",
+        "outcomes",
+        "outcome_prices",
+        "clob_token_ids",
+        "start_date",
+        "end_date",
+        "volume_num",
+        "liquidity_num",
+        "volume_24hr",
+        "last_trade_price",
+        "best_bid",
+        "best_ask",
+        "spread",
+        "one_day_price_change",
+        "one_week_price_change",
+        "active",
+        "closed",
+        "image",
+        "icon",
+        "events",
+    )
+
+    BATCH_SIZE = 50
+
     async def persist_markets(self, markets: Sequence[JsonDict]) -> None:
         if not markets:
             return
 
-        snapshot_rows = [self.build_snapshot_row(market) for market in markets]
-        insert_stmt = pg_insert(Market).values(list(markets))
-
-        update_columns = {
-            column: getattr(insert_stmt.excluded, column)
-            for column in (
-                "question",
-                "slug",
-                "description",
-                "condition_id",
-                "outcomes",
-                "outcome_prices",
-                "clob_token_ids",
-                "start_date",
-                "end_date",
-                "volume_num",
-                "liquidity_num",
-                "volume_24hr",
-                "last_trade_price",
-                "best_bid",
-                "best_ask",
-                "spread",
-                "one_day_price_change",
-                "one_week_price_change",
-                "active",
-                "closed",
-                "image",
-                "icon",
-                "events",
-            )
-        }
-        update_columns["updated_at"] = datetime.now(UTC)
+        now = datetime.now(UTC)
 
         async with self.session_factory() as session:
             async with session.begin():
-                await session.execute(
-                    insert_stmt.on_conflict_do_update(
-                        index_elements=[Market.__table__.c.id],
-                        set_=update_columns,
+                for i in range(0, len(markets), self.BATCH_SIZE):
+                    chunk = list(markets[i : i + self.BATCH_SIZE])
+                    insert_stmt = pg_insert(Market).values(chunk)
+                    update_columns = {
+                        col: getattr(insert_stmt.excluded, col)
+                        for col in self.UPSERT_COLUMNS
+                    }
+                    update_columns["updated_at"] = now
+                    await session.execute(
+                        insert_stmt.on_conflict_do_update(
+                            index_elements=[Market.__table__.c.id],
+                            set_=update_columns,
+                        )
                     )
-                )
-                await session.execute(pg_insert(MarketSnapshot).values(snapshot_rows))
+
+                    snapshot_chunk = [self.build_snapshot_row(m) for m in chunk]
+                    await session.execute(
+                        pg_insert(MarketSnapshot).values(snapshot_chunk)
+                    )
 
     def normalize_market(self, market: JsonDict) -> JsonDict | None:
         market_id = self.pick_first_present_value(market, ("id", "marketId", "market_id"))

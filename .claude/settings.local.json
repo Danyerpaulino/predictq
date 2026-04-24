@@ -4,7 +4,10 @@
       "WebFetch(domain:gamma-api.polymarket.com)",
       "Bash(npm --version)",
       "Bash(docker --version)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(python3 -m pytest tests/ -x -q)",
+      "Bash(.venv/bin/python -m pytest backend/tests/ -x -q)",
+      "Bash(.venv/bin/pytest tests/ -x -q)"
     ]
   }
 }
