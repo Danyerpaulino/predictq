@@ -19,5 +19,12 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace(
+                "postgresql://", "postgresql+asyncpg://", 1
+            )
+
 
 settings = Settings()
