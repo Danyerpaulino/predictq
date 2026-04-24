@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:gamma-api.polymarket.com)",
+      "Bash(npm --version)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)"
+    ]
+  }
+}
