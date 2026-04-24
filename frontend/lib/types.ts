@@ -70,6 +70,24 @@ export interface MarketHistoryResponse {
   snapshots: MarketSnapshot[];
 }
 
+export interface AiAnalysisResponse {
+  market_id: string;
+  trend: "bullish" | "bearish" | "stable" | "volatile" | "unknown";
+  confidence: number;
+  summary: string;
+  key_observations: string[];
+  stats: {
+    data_points: number;
+    insufficient_data: boolean;
+    price_change: number | null;
+    volatility: number | null;
+    momentum: number | null;
+    direction: string;
+    high: number | null;
+    low: number | null;
+  };
+}
+
 export interface GetMarketsParams {
   limit?: number;
   offset?: number;

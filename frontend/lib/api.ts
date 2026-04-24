@@ -1,4 +1,5 @@
 import type {
+  AiAnalysisResponse,
   GetMarketsParams,
   Market,
   MarketHistoryResponse,
@@ -83,4 +84,13 @@ export async function getMarketHistory(
   return apiFetch<MarketHistoryResponse>(
     `/markets/${marketId}/history${buildQueryString({ hours })}`,
   );
+}
+
+export async function analyzeMarket(
+  marketId: string,
+): Promise<AiAnalysisResponse> {
+  return apiFetch<AiAnalysisResponse>("/ai/analyze", {
+    method: "POST",
+    body: JSON.stringify({ market_id: marketId }),
+  });
 }

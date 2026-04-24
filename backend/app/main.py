@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import async_session
-from app.routes import markets_router
+from app.routes import ai_router, markets_router
 from app.services.ingestion import PolymarketIngestionService
 
 logging.basicConfig(
@@ -51,6 +51,7 @@ app.add_middleware(
 )
 
 app.include_router(markets_router)
+app.include_router(ai_router)
 
 
 @app.get("/health")
