@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   formatCompactCurrency,
   formatDateLabel,
@@ -49,6 +51,7 @@ export function MarketCard({ market }: MarketCardProps) {
   const status = getStatusChip(market);
 
   return (
+    <Link href={`/markets/${market.id}`} className="block">
     <article className="group overflow-hidden rounded-[1.75rem] border border-white/70 bg-white/80 p-5 shadow-[0_22px_48px_-36px_rgba(15,35,51,0.65)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_60px_-34px_rgba(15,35,51,0.72)]">
       <div className="flex items-start justify-between gap-3">
         <span
@@ -149,5 +152,6 @@ export function MarketCard({ market }: MarketCardProps) {
         </p>
       </div>
     </article>
+    </Link>
   );
 }
